@@ -1,7 +1,10 @@
+
+
 export default function(desc, parent){
 
     let top = false;
     let parentName = desc;
+    let newId = new Date().valueOf() + '' + Math.floor((Math.random() * 10000) + 1);
 
     if(!parent){
         top = true
@@ -12,11 +15,56 @@ export default function(desc, parent){
 
     return {
 
+        id: newId,
         description: desc,
         workDone: [],
         subTasks: [],
         main: top,
-        parent: parentName,
+        parent: parent && parent.id || newId,
+
+        hasSubTasks: function(){
+            if(this.subTasks.length > 0){
+                return true
+            }
+            return false
+        },
+
+        cloneWorkDone: function(task){
+
+            this.workDone = [];
+            while(task.workDone.length > 0){
+                let o = task.workDone.splice(0, 1);
+                this.workDone.push(o[0])
+                //console.log(o)
+            }
+        },
+
+        updateTask: function(task, staff){
+            
+            if(task.id === this.id){
+                this.description = task.description
+                
+                // this.workDone.forEach(wd => {
+                //     if(task.hasOwnProperty(wd.staffMember.id)){
+                //         wd.hours = task[wd.staffMember.id];
+                        
+                //     }
+                // })
+                this.workDone = [];
+                staff.forEach(stf => {
+                    this.workDone.push({
+                       staffMember: stf,
+                       hours: task[stf.id] || 0 
+                    })
+                })
+
+                
+            }
+
+            this.subTasks.forEach(st => {
+                st.updateTask(task, staff)
+            })
+        },
 
         addSubTask: function(task){
             this.subTasks.push(task)

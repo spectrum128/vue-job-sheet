@@ -1,17 +1,56 @@
+import Task from "./Task";
+
 export default function(nm){
 
     return {
 
         name: nm,
         tasks: [],
+        staff: [],
+
+        updateTask: function(task, staff){
+            this.staff = staff;
+            console.log('updating task: ', task)
+            this.tasks.forEach(t => {
+                t.updateTask(task, staff)
+            })
+
+        },
 
         addTask: function(task){
             this.tasks.push(task);
         },
 
         removeTask: function(task){
-            let ind = this.tasks.indexOf(task);
+            let myTask = this.tasks.find(t => {
+                return t.id === task.id
+            });
+            let ind = this.tasks.indexOf(myTask)
             this.tasks.splice(ind, 1);
+        },
+
+        removeSubTask: function(task){
+            let myTask = this.tasks.find(t => {
+                return t.id === task.parent
+            });
+
+            myTask.removeSubTask(task);
+        },
+
+        addSubTask: function(task){
+            let findid = task.main ? task.id : task.parent;
+
+            let myTask = this.tasks.find(t => {
+                return t.id === findid;
+            });
+            
+            console.log('my task', myTask.id, task.id)
+            let sub = new Task("new sub task", myTask)
+
+            if(!myTask.hasSubTasks()){
+                sub.cloneWorkDone(myTask)
+            }
+            myTask.addSubTask(sub)
         },
 
         getTotalHoursForStaffMember: function(stm){

@@ -9,14 +9,61 @@
           </v-col>
       </v-row>
       <v-row>
-          <v-col>
-              <v-data-table v-if="ready" :headers="headers" :items="jobSheetData" :items-per-page="1000" :hide-default-footer="true"  class="elevation-1">
+          <v-col cols=2>
+              <v-btn large @click="addNewTask">Add a Task</v-btn>
+          </v-col>
+          <v-col cols=8>
 
-              </v-data-table>
           </v-col>
       </v-row>
       <v-row>
           <v-col>
+              <v-data-table v-if="ready" :headers="headers" :items="jobSheetData" :items-per-page="1000" :hide-default-footer="true"  class="elevation-1">
+
+                <template v-slot:item="{ item }">
+                    <tr v-if="(item.main && item.hasSubTasks) || item.isInfoRow" :class="{'green lighten-4': item.isInfoRow, 'grey lighten-2': !item.isInfoRow}">
+                        <td v-for="(h,idx) in headers" :key="idx">
+                            <span v-if="h.value != 'description' || item.isInfoRow">{{item[h.value]}}</span>
+                            <v-text-field v-if="h.value === 'description' && !item.isInfoRow" outlined dense class="pt-4" v-model="item[h.value]" v-on:keyup="updateDataStructure(item)"></v-text-field>
+                            
+                            <div>
+                                <v-btn small color="blue lighten-3" v-if="h.value === 'action' && !item.isInfoRow" @click="addSubTask(item)">Add Subtask</v-btn>
+                            
+                            
+                            </div>
+                                
+                        </td>
+                        <td>
+                                <v-btn small color="red lighten-4" v-if="!item.isInfoRow" @click="deleteTask(item)">Delete</v-btn>
+                            
+                        </td>
+                    
+                    </tr>
+
+                    <tr v-if="(!item.main || !item.hasSubTasks) && !item.isInfoRow" :class="{ 'grey lighten-2': (item.main && !item.hasSubTasks) }">
+                        <td v-for="(h,idx) in headers" :key="idx">
+                            
+                            <v-text-field outlined :reverse="h.value != 'description'" dense class="pt-4" v-if="(!h.isTextField && !item.isInfoRow) || (h.value == 'description')" v-model.number="item[h.value]" v-on:keyup="updateDataStructure(item)"></v-text-field>
+                            <span v-if="(h.isTextField || item.isInfoRow) && h.value != 'description'">{{item[h.value]}}</span>
+                            
+                                <v-btn small color="blue lighten-3" v-if="h.value === 'action' && !item.isInfoRow && item.main" @click="addSubTask(item)">Add Subtask</v-btn>
+                            
+                            
+                                
+                            
+                        </td>
+                        <td><v-btn small color="red lighten-4" v-if="!item.isInfoRow" @click="deleteTask(item)">Delete</v-btn></td>
+                    </tr>
+                </template>
+              
+              </v-data-table>
+          </v-col>
+      </v-row>
+      <v-row>
+          <v-col cols=2>
+              <v-btn large @click="addNewTask">Add a Task</v-btn>
+          </v-col>
+          <v-col cols=8>
 
           </v-col>
       </v-row>
@@ -39,7 +86,7 @@ export default {
         jobSheet: null,
         ready: false,
         staff: [],
-        
+        trigger: false
 
         
     }),
@@ -49,6 +96,46 @@ export default {
     },
 
     methods: {
+
+        forceUpdate(){
+            //this.$forceUpdate()
+            this.trigger = 1;
+        },
+
+        updateDataStructure(item){
+            this.jobSheet.updateTask(item, this.staff);
+            this.forceUpdate();
+        },
+
+        addSubTask(task){
+
+            this.jobSheet.addSubTask(task)
+        },
+
+        
+
+        deleteTask(task){
+
+            let con = window.confirm("Are you sure you wish to delete the task: " + task.description + "?")
+            if(con){
+                if(task.main){
+                    this.jobSheet.removeTask(task)
+                }
+                else{
+                    this.jobSheet.removeSubTask(task)
+                }
+            }
+            
+        },
+
+        isRoot(it){
+            return it && it.main || false
+        },
+
+        addNewTask(){
+            let task = new Task("New Task");
+            this.jobSheet.addTask(task);
+        },
 
         initialise(){
             this.jobSheet = new JobSheet('Sheet 1')
@@ -94,11 +181,14 @@ export default {
             let totalHoursTask = { description: 'Total Hours' };
 
             this.staff.forEach(stm => {
-                totalHoursTask[stm.name] = this.jobSheet.getTotalHoursForStaffMember(stm);
+                totalHoursTask[stm.id] = this.jobSheet.getTotalHoursForStaffMember(stm);
             })
 
             totalHoursTask.totalHours = this.jobSheet.getTotalHours();
             totalHoursTask.totalCost = "";
+            totalHoursTask.main = false;
+            totalHoursTask.id = "totalhourstask"
+            totalHoursTask.isInfoRow = true;
 
             return totalHoursTask;
         },
@@ -108,11 +198,14 @@ export default {
             let totalCostTask = { description: 'Total Cost' };
 
             this.staff.forEach(stm => {
-                totalCostTask[stm.name] = this.jobSheet.getTotalCostForStaffMember(stm);
+                totalCostTask[stm.id] = this.jobSheet.getTotalCostForStaffMember(stm);
             })
 
             totalCostTask.totalHours = ""
             totalCostTask.totalCost = this.jobSheet.getTotalCost();
+            totalCostTask.main = false;
+            totalCostTask.id = "totalcosttask";
+            totalCostTask.isInfoRow = true;
 
             return totalCostTask;
         },
@@ -122,11 +215,15 @@ export default {
             let task = {}
             task.description = t.description;
             this.staff.forEach(stm => {
-                task[stm.name] = t.getTotalHoursForStaffMember(stm)
+                task[stm.id] = t.getTotalHoursForStaffMember(stm)
             })
             task.totalHours = t.getTotalHours();
             task.totalCost = t.getTotalCost();
             task.parent = t.parent;
+            task.main = t.main;
+            task.hasSubTasks = t.hasSubTasks();
+            task.id = t.id;
+            
 
             return task;
         }
@@ -136,15 +233,16 @@ export default {
 
         headers: function(){
             let data = [
-                { text: 'Description', value: 'description'}
+                { text: 'Description', value: 'description', isTextField: true}
             ]
 
             this.staff.forEach(stm => {
-                data.push({ text: stm.name + ' (' + stm.rate + ')', value: stm.name })
+                data.push({ text: stm.name + ' (' + stm.rate + ')', value: stm.id })
             })
 
-            data.push({ text: 'Total Hours', value: 'totalHours'})
-            data.push({ text: 'Total Cost', value: 'totalCost'})
+            data.push({ text: 'Total Hours', value: 'totalHours', isTextField: true})
+            data.push({ text: 'Total Cost', value: 'totalCost', isTextField: true})
+            data.push({ text: 'Action', value: 'action', isTextField: true})
 
             return data;
         },
@@ -170,6 +268,10 @@ export default {
 
             let totalCostTask = this.getTotalCostTask();
             data.push(totalCostTask)
+
+            if(this.trigger == 1){
+                this.trigger = 0;
+            }
 
             
             return data;
