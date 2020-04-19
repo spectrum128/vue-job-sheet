@@ -1,18 +1,31 @@
 <template>
   <div>
     
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    
+    <v-container>
+    <v-row class="text-center">
+     
+      <v-col class="mb-5" cols="12">
+        <v-row justify="center">
+
+            <job-sheet></job-sheet>
+          
+        </v-row>
+      </v-col>
+
+      
+    </v-row>
+  </v-container>
   </div>
 </template>
 
 <script>
-import HelloWorld from '../components/HelloWorld.vue'
+import JobSheet from '../components/JobSheet.vue'
 
 export default {
   name: 'Main',
   components: {
-    HelloWorld
+    JobSheet
   }
 }
 </script>

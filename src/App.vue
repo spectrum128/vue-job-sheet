@@ -1,8 +1,23 @@
 <template>
-  <div id="app">
-    <h1>Job Sheet Builder</h1>
-    <router-view></router-view>
-  </div>
+  <v-app>
+    <v-app-bar
+      app
+      color="primary"
+      dark
+    >
+      <div class="d-flex align-center">
+        Job Sheet Builder
+      </div>
+
+      <v-spacer></v-spacer>
+
+      
+    </v-app-bar>
+
+    <v-content>
+      <router-view></router-view>
+    </v-content>
+  </v-app>
 </template>
 
 <script>
@@ -10,17 +25,13 @@
 
 export default {
   name: 'App',
-  
-}
-</script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
+  components: {
+   
+  },
+
+  data: () => ({
+    //
+  }),
+};
+</script>
