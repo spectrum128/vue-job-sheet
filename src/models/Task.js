@@ -39,6 +39,24 @@ export default function(desc, parent){
             }
         },
 
+        removeWorkDone(member){
+
+            console.log('remove ', member)
+            let work = this.workDone.find(wd => {
+                return wd.staffMember.id == member.id;
+            })
+            let ind = this.workDone.indexOf(work);
+            
+            if(ind > -1){
+                console.log("removing from " + this.description)
+                this.workDone.splice(ind, 1)
+            }
+
+            this.subTasks.forEach(st => {
+                st.removeWorkDone(member)
+            })
+        },
+
         updateTask: function(task, staff){
             
             if(task.id === this.id){

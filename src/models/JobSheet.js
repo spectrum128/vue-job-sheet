@@ -7,6 +7,7 @@ export default function(nm){
         name: nm,
         tasks: [],
         staff: [],
+        
 
         updateTask: function(task, staff){
             this.staff = staff;
@@ -15,6 +16,12 @@ export default function(nm){
                 t.updateTask(task, staff)
             })
 
+        },
+
+        deleteStaffMember(member){
+            this.tasks.forEach(t => {
+                t.removeWorkDone(member);
+            })
         },
 
         addTask: function(task){

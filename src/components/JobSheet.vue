@@ -1,10 +1,47 @@
 <template>
-    <v-container>
-
+    <div class="px-4 py-3">
       <v-row>
           <v-col>
+              <h2>Staff List</h2>
+          </v-col>
+      </v-row>
+      <v-row>
+          <v-col cols=4>
+              <v-form>
+                  <v-text-field label="Name" v-model="name"></v-text-field>
+                  <v-text-field label="Rate" v-model="rate"></v-text-field>
+              </v-form>
+                  <v-btn large @click="addStaffMember">Add a Staff Member</v-btn>
+          </v-col>
+          
+      </v-row>
+      <v-row class="mt-3">
+          <v-col cols=12>
+              <div style="overflow: auto">
+                  <v-data-table :headers="staffHeaders" :items="staff" :items-per-page="8"  class="elevation-1">
+                    <template v-slot:item.actions="{ item }">
+                        <v-icon
+                            small
+                            @click="deleteStaffMember(item)"
+                        >
+                            mdi-delete
+                        </v-icon>
+                    </template>
+                </v-data-table>
+
+              </div>
+                
+
+            
+          </v-col>
+          
+      </v-row>
+
+        <v-divider class="my-5 py-5" ></v-divider>
+      <v-row class="pt-4 mt-5">
+          <v-col>
               <h2 v-if="ready">
-                  {{ jobSheet.name }}
+                 Job Sheet
               </h2>
           </v-col>
       </v-row>
@@ -22,12 +59,12 @@
 
                 <template v-slot:item="{ item }">
                     <tr v-if="(item.main && item.hasSubTasks) || item.isInfoRow" :class="{'green lighten-4': item.isInfoRow, 'grey lighten-2': !item.isInfoRow}">
-                        <td v-for="(h,idx) in headers" :key="idx">
+                        <td v-for="(h,idx) in headers" :key="idx" >
                             <span v-if="h.value != 'description' || item.isInfoRow">{{item[h.value]}}</span>
-                            <v-text-field v-if="h.value === 'description' && !item.isInfoRow" outlined dense class="pt-4" v-model="item[h.value]" v-on:keyup="updateDataStructure(item)"></v-text-field>
+                            <v-text-field style='min-width: 180px' v-if="h.value === 'description' && !item.isInfoRow" outlined dense class="pt-4" v-model="item[h.value]" v-on:keyup="updateDataStructure(item)"></v-text-field>
                             
                             <div>
-                                <v-btn small color="blue lighten-3" v-if="h.value === 'action' && !item.isInfoRow" @click="addSubTask(item)">Add Subtask</v-btn>
+                                <v-btn small color="green lighten-3" v-if="h.value === 'action' && !item.isInfoRow" @click="addSubTask(item)">Add Subtask</v-btn>
                             
                             
                             </div>
@@ -43,7 +80,7 @@
                     <tr v-if="(!item.main || !item.hasSubTasks) && !item.isInfoRow" :class="{ 'grey lighten-2': (item.main && !item.hasSubTasks) }">
                         <td v-for="(h,idx) in headers" :key="idx">
                             
-                            <v-text-field outlined :reverse="h.value != 'description'" dense class="pt-4" v-if="(!h.isTextField && !item.isInfoRow) || (h.value == 'description')" v-model.number="item[h.value]" v-on:keyup="updateDataStructure(item)"></v-text-field>
+                            <v-text-field style="min-width: 60px" outlined :reverse="h.value != 'description'" dense class="pt-4" v-if="(!h.isTextField && !item.isInfoRow) || (h.value == 'description')" v-model.number="item[h.value]" v-on:keyup="updateDataStructure(item)"></v-text-field>
                             <span v-if="(h.isTextField || item.isInfoRow) && h.value != 'description'">{{item[h.value]}}</span>
                             
                                 <v-btn small color="blue lighten-3" v-if="h.value === 'action' && !item.isInfoRow && item.main" @click="addSubTask(item)">Add Subtask</v-btn>
@@ -68,7 +105,7 @@
           </v-col>
       </v-row>
 
-     </v-container>
+     </div>
 </template>
 
 <script>
@@ -86,6 +123,13 @@ export default {
         jobSheet: null,
         ready: false,
         staff: [],
+        name: '',
+        rate: '',
+        staffHeaders: [
+            { text: 'Name', value: 'name' },
+            { text: 'Rate', value: 'rate' },
+            { text: 'Delete', value: 'actions'}
+        ],
         trigger: false
 
         
@@ -100,6 +144,28 @@ export default {
         forceUpdate(){
             //this.$forceUpdate()
             this.trigger = 1;
+        },
+
+        deleteStaffMember(member){
+            let con = window.confirm("Are you sure you wish to delete " + member.name + "?")
+            if(con){
+                this.jobSheet.deleteStaffMember(member);
+                let ind = this.staff.indexOf(member);
+                this.staff.splice(ind, 1)
+            }
+            
+        },
+
+        addStaffMember(){
+            if(this.name && this.rate && Number(this.rate)){
+                let st = new StaffMember(this.name, this.rate);
+                this.staff.push(st);
+                this.name = '';
+                this.rate = '';
+            }
+            else{
+                window.alert("Please enter a name and a valid rate")
+            }
         },
 
         updateDataStructure(item){
@@ -139,17 +205,19 @@ export default {
 
         initialise(){
             this.jobSheet = new JobSheet('Sheet 1')
-            let bob = new StaffMember('Bob', 200);
-            let sally = new StaffMember('Sally', 150);
-            let joe = new StaffMember('Joe', 100);
+            let bob = new StaffMember('John', 200);
+            let sally = new StaffMember('Mary', 150);
+            let joe = new StaffMember('Mick', 100);
             this.staff.push(bob);
             this.staff.push(sally);
             this.staff.push(joe);
 
             let task1 = new Task("Task 1");
-            task1.workDone.push({ staffMember: bob, hours: 8 })
-            task1.workDone.push({ staffMember: sally, hours: 56 })
-            task1.workDone.push({ staffMember: joe, hours: 56 })
+            let suba = new Task('Sub Task a', task1);
+            suba.workDone.push({ staffMember: bob, hours: 8 })
+            suba.workDone.push({ staffMember: sally, hours: 56 })
+            suba.workDone.push({ staffMember: joe, hours: 56 })
+            task1.addSubTask(suba);
             console.log('task 1 total hours: ', task1.getTotalHours())
             console.log('task 1 total cost: ', task1.getTotalCost())
 
