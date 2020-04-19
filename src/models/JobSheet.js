@@ -14,6 +14,25 @@ export default function(nm){
             this.tasks.splice(ind, 1);
         },
 
+        getTotalHoursForStaffMember: function(stm){
+
+            let total = 0;
+            this.tasks.forEach(t => {
+                total = total + t.getTotalHoursForStaffMember(stm);
+            })
+            return total;
+        },
+
+        getTotalCostForStaffMember: function(stm){
+
+            let total = 0;
+            this.tasks.forEach(t => {
+                total = total + t.getTotalCostForStaffMember(stm);
+            })
+
+            return total;
+        },
+
         getTotalHours: function(){
             let total = 0;
             this.tasks.forEach(t =>{ 

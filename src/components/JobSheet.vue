@@ -10,9 +10,14 @@
       </v-row>
       <v-row>
           <v-col>
-              <v-data-table v-if="ready" :headers="headers" :items="jobSheetData" :items-per-page="100"  class="elevation-1">
+              <v-data-table v-if="ready" :headers="headers" :items="jobSheetData" :items-per-page="1000" :hide-default-footer="true"  class="elevation-1">
 
               </v-data-table>
+          </v-col>
+      </v-row>
+      <v-row>
+          <v-col>
+
           </v-col>
       </v-row>
 
@@ -84,6 +89,34 @@ export default {
 
         },
 
+        getTotalHoursTask(){
+
+            let totalHoursTask = { description: 'Total Hours' };
+
+            this.staff.forEach(stm => {
+                totalHoursTask[stm.name] = this.jobSheet.getTotalHoursForStaffMember(stm);
+            })
+
+            totalHoursTask.totalHours = this.jobSheet.getTotalHours();
+            totalHoursTask.totalCost = "";
+
+            return totalHoursTask;
+        },
+
+        getTotalCostTask(){
+
+            let totalCostTask = { description: 'Total Cost' };
+
+            this.staff.forEach(stm => {
+                totalCostTask[stm.name] = this.jobSheet.getTotalCostForStaffMember(stm);
+            })
+
+            totalCostTask.totalHours = ""
+            totalCostTask.totalCost = this.jobSheet.getTotalCost();
+
+            return totalCostTask;
+        },
+
         flattenTask(t){
 
             let task = {}
@@ -130,7 +163,13 @@ export default {
                     data.push(sub)
                 })
 
-            })
+            });
+
+            let totalHoursTask = this.getTotalHoursTask();
+            data.push(totalHoursTask);
+
+            let totalCostTask = this.getTotalCostTask();
+            data.push(totalCostTask)
 
             
             return data;
