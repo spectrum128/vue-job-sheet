@@ -55,8 +55,18 @@
       </v-row>
       <v-row>
           <v-col>
-              <v-data-table v-if="ready" :headers="headers" :items="jobSheetData" :items-per-page="1000" :hide-default-footer="true"  class="elevation-1">
+              <v-data-table hide-default-header disable-sort v-if="ready" :headers="headers" :items="jobSheetData" :items-per-page="1000" :hide-default-footer="true"  class="elevation-1">
 
+                <template v-slot:header="{ props: { headers } }">
+                    <thead>
+                        <tr>
+                            <th v-for="(h, idx) in headers" :key="idx">
+                                {{h.text}}
+                            </th>
+                        </tr>
+                        
+                    </thead>
+                </template>
                 <template v-slot:item="{ item }">
                     <tr v-if="(item.main && item.hasSubTasks) || item.isInfoRow" :class="{'green lighten-4': item.isInfoRow, 'grey lighten-2': !item.isInfoRow}">
                         <td v-for="(h,idx) in headers" :key="idx" >
@@ -114,6 +124,7 @@ import Sheet from '../models/JobSheet'
 import Task from '../models/Task'
 import StaffMember from '../models/StaffMember'
 import JobSheet from '../models/JobSheet'
+import debounce from 'lodash.debounce'
 
 export default {
     name: 'JobSheet',
@@ -170,7 +181,8 @@ export default {
 
         updateDataStructure(item){
             this.jobSheet.updateTask(item, this.staff);
-            this.forceUpdate();
+            debounce(this.forceUpdate, 250, { 'maxWait': 1000 });
+            
         },
 
         addSubTask(task){
