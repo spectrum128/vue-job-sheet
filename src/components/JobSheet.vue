@@ -109,9 +109,15 @@
       <v-row>
           <v-col cols=2>
               <v-btn large @click="addNewTask">Add a Task</v-btn>
+              
           </v-col>
           <v-col cols=8>
 
+          </v-col>
+      </v-row>
+      <v-row>
+          <v-col>
+              <v-btn large class="success" @click="downloadFile">Export to csv</v-btn>
           </v-col>
       </v-row>
 
@@ -148,6 +154,8 @@ export default {
 
     mounted(){
         this.initialise();
+        let csv = this.exportSheetToCSV()
+        console.log(csv)
     },
 
     methods: {
@@ -306,7 +314,59 @@ export default {
             
 
             return task;
+        },
+
+        createCSVHeaders(){
+            let csv = 'Description,';
+
+            this.staff.map(st => {
+                csv = csv + st.name + '(' + st.rate + '),'
+            })
+
+            csv = csv + 'Total Hours,Total Cost\n';
+
+            return csv;
+        },
+
+        exportSheetToCSV(){
+
+            let csv = this.createCSVHeaders();
+
+            this.jobSheetData.forEach(row => {
+                csv = csv + this.exportTaskToCSV(row)
+            });
+
+            return csv;
+        },
+
+        exportTaskToCSV(task){
+            let csv = '' + task.description +',';// 'data:text/csv;charset=utf-8,';
+
+            this.staff.map(st => {
+                csv = csv + task[st.id] + ','
+            });
+            
+            
+
+            csv = csv + task.totalHours + ',' + task.totalCost + '\n';
+
+            return csv;
+
+        },
+
+        downloadFile(){
+
+            let csvData = this.exportSheetToCSV();
+            let enc = encodeURI(csvData);
+            var downloadLink = document.createElement("a");
+            downloadLink.href = 'data:text/csv;charset=utf-8,' + encodeURI(csvData);
+            downloadLink.setAttribute("download", "jobsheet.csv");
+            document.body.appendChild(downloadLink); 
+
+            downloadLink.click(); 
+            //downloadLink.setAttribute("style", "display: none;")
         }
+
     },
 
     computed: {
