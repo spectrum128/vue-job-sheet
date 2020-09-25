@@ -1,5 +1,13 @@
 # vue-job-sheet
 
+Simple work cost estimator demo, with multiple staff, rates and tasks.
+
+Demo hosted here:
+
+https://vue-job-sheet.now.sh/#/
+
+
+
 ## Project setup
 ```
 npm install
